@@ -1,14 +1,11 @@
 package com.chenlb.mmseg4j;
 
-import org.elasticsearch.common.io.PathUtils;
-import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.logging.ESLoggerFactory;
+import org.elasticsearch.core.PathUtils;
 import org.elasticsearch.plugin.analysis.mmseg.AnalysisMMsegPlugin;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author chenlb 2009-2-20 下午11:34:29
  */
 public class Dictionary {
-
-	private static final Logger log = ESLoggerFactory.getLogger(Dictionary.class.getName());
 
 	private File dicPath;	//词库目录
 	private volatile Map<Character, CharNode> dict;
@@ -183,7 +178,6 @@ public class Dictionary {
 				}
 			}
 		});
-		log.info("[Dict Loading] chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile.getName());
 
 		//try load words.dic in jar
 		InputStream wordsDicIn = this.getClass().getResourceAsStream("/data/words.dic");
@@ -201,7 +195,6 @@ public class Dictionary {
 			}
 		}
 
-		log.debug("[Dict Loading] load all dic use time=" + (now()-ss)+"ms");
 		return dic;
 	}
 
@@ -214,7 +207,6 @@ public class Dictionary {
 	private void loadWord(InputStream is, Map<Character, CharNode> dic, File wordsFile) throws IOException {
 		long s = now();
 		int lineNum = load(is, new WordsFileLoading(dic)); //正常的词库
-		log.info("[Dict Loading] words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile.getName());
 	}
 
 	private Map<Character, Object> loadUnit(File path) throws IOException {
@@ -240,7 +232,6 @@ public class Dictionary {
 				localUnit.put(line.charAt(0), Dictionary.class);
 			}
 		});
-		log.info("[Dict Loading] unit loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+unitFile.getName());
 
 		return localUnit;
 	}
@@ -369,8 +360,6 @@ public class Dictionary {
 			dict = oldDict;
 			unit = oldUnit;
 
-            log.warn("reload dic error! dic="+dicPath+", and rollbacked.", e);
-
 			return false;
 		}
 		return true;
@@ -435,23 +424,17 @@ public class Dictionary {
 	public static File getDefalutPath() {
 		if(defalutPath == null) {
 			String defPath = System.getProperty("mmseg.dic.path");
-			log.info("look up in mmseg.dic.path="+defPath);
 			if(defPath == null) {
 				URL url = Dictionary.class.getClassLoader().getResource("data");
 				if(url != null) {
 					defPath = url.getFile();
-					log.info("look up in classpath="+defPath);
 				} else {
 					defPath = System.getProperty("user.dir")+"/data";
-					log.info("look up in user.dir="+defPath);
 				}
 
 			}
 
 			defalutPath = new File(defPath);
-			if(!defalutPath.exists()) {
-				log.warn("defalut dic path="+defalutPath+" not exist");
-			}
 		}
 		return defalutPath;
 	}
